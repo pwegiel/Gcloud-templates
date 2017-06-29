@@ -1,0 +1,21 @@
+{% set INSTANCE_TEMPLATE = env["deployment"] + "-it" %}
+{% set IGM = env["deployment"] + "-igm" %}
+
+resources:
+- name: {{ IGM }}
+  type: compute.v1.instanceGroupManager
+  properties:
+    baseInstanceName: {{ env["deployment"] }}-instance
+    instanceTemplate: https://www.googleapis.com/compute/v1/projects/central-beach-171322/global/instanceTemplates/wp-4
+    targetSize: {{ properties["targetSize"] }}
+
+- name: {{ env["deployment"] }}-as
+  type: compute.v1.autoscaler
+  properties:
+    target: $(ref.{{ IGM }}.selfLink)
+    autoscalingPolicy:
+	  minNumReplicas: {{ properties["maxReplicas"] }}
+      maxNumReplicas: {{ properties["maxReplicas"] }}
+      cpuUtilization:
+        utilizationTarget: 0.9
+      coolDownPeriodSec: 90
